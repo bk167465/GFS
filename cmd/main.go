@@ -1,27 +1,25 @@
 package main
 
 import (
-	"fmt"
-	"github.com/bk167465/GFS/internal/master"
+	"log"
+	"os"
+
+	"github.com/bk167465/GFS/cmd/run_grpc"
 )
 
 func main() {
-	m := master.NewMaster()
-	client := NewClient(m)
-
-	err := client.Upload("testfile.txt")
-	if err != nil {
-		panic(err)
+	if len(os.Args) < 2 {
+		log.Fatal("usage: grpc [master|chunk|client] [flags]")
 	}
 
-	meta, ok := m.GetFileMetadata("testfile.txt")
-	if !ok {
-		panic("file metadata not found")
-	}
-
-	fmt.Println("File:", meta.Filename)
-	for _, chunk := range meta.Chunks {
-		fmt.Println("Chunk:", chunk.Handle)
-		fmt.Println("Replicas:", chunk.Locations)
+	switch os.Args[1] {
+	case "master":
+		run_grpc.MasterCommand()
+	case "chunk":
+		run_grpc.ChunkCommand()
+	case "client":
+		run_grpc.ClientCommand()
+	default:
+		log.Fatalf("unknown command %q", os.Args[1])
 	}
 }
