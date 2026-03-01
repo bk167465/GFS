@@ -1,36 +1,7 @@
 package main
 
-import (
-	"fmt"
-	"github.com/bk167465/GFS/p2p"
-	"log"
-)
-
-func onPeer(peer p2p.Peer) error {
-	peer.Close()
-	return nil
-}
+import "fmt"
 
 func main() {
-	tcpOpts := p2p.TcpTransportOpts{
-		ListenAddr:    ":3000",
-		HandshakeFunc: p2p.NopHandshakeFunc,
-		Decoder:       p2p.DefaultDecoder{},
-		OnPeer:        onPeer,
-	}
-
-	tr := p2p.NewTcpTransport(tcpOpts)
-
-	go func() {
-		for {
-			msg := <-tr.Consume()
-			fmt.Printf("%+v\n", msg)
-		}
-	}()
-
-	if err := tr.ListenAndAccept(); err != nil {
-		log.Fatal(err)
-	}
-
-	select {}
+	fmt.Println("Let's Go")
 }
