@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package gfs;
+
+option go_package = "/pb";
+
+// ChunkHandle uniquely identifies a chunk
+message ChunkHandle {
+  string handle = 1;
+}
+
+// ServerID uniquely identifies a chunk server
+message ServerID {
+  string id = 1;
+}
+
+// ChunkMetadata describes a chunk and its replica locations
+message ChunkMetadata {
+  string handle = 1;
+  repeated string locations = 2;
+  int32 version = 3;
+}
+
+// FileMetadata describes a file and its chunks
+message FileMetadata {
+  string filename = 1;
+  repeated ChunkMetadata chunks = 2;
+}
