@@ -4,14 +4,15 @@ type ChunkHandle string
 type ServerID string
 
 const ChunkSize = 1 * 1024 * 1024 // 1MB for testing
+const ReplicationFactor = 3
 
 type FileMetadata struct {
 	Filename string
-	Chunks   []ChunkHandle
+	Chunks   []ChunkMetadata
 }
 
 type ChunkMetadata struct {
-	Handle  ChunkHandle
-	Server  ServerID
-	Version int
+	Handle    ChunkHandle
+	Locations []ServerID
+	Version   int
 }

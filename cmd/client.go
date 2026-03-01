@@ -31,22 +31,35 @@ func (c *Client) Upload(filename string) error {
 	}
 	defer file.Close()
 
-	stat, _ := file.Stat()
-	numChunks := int(stat.Size()/common.ChunkSize) + 1
-
-	chunks := c.master.CreateFile(filename, numChunks)
-
-	for _, chunkMeta := range chunks {
+	for {
 		buffer := make([]byte, common.ChunkSize)
-		n, _ := file.Read(buffer)
+		n, err := file.Read(buffer)
 
-		server := c.chunkServers[string(chunkMeta.Server)]
-		err := server.WriteChunk(string(chunkMeta.Handle), buffer[:n])
+		if n == 0 {
+			break
+		}
+
+		// Ask master to allocate a new chunk
+		chunkMeta := c.master.AllocateChunk(filename)
+
+		// Write to ALL replicas
+		for _, serverID := range chunkMeta.Locations {
+			server := c.chunkServers[string(serverID)]
+			if server == nil {
+				return fmt.Errorf("server %s not found", serverID)
+			}
+
+			writeErr := server.WriteChunk(string(chunkMeta.Handle), buffer[:n])
+			if writeErr != nil {
+				return writeErr
+			}
+		}
+
 		if err != nil {
-			return err
+			break
 		}
 	}
 
-	fmt.Println("Upload successful!")
+	fmt.Println("Upload with replication successful!")
 	return nil
 }
