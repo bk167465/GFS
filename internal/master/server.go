@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"time"
 
 	"github.com/bk167465/GFS/internal/common"
 	pb "github.com/bk167465/GFS/protos/pb"
@@ -129,4 +130,28 @@ func locationsToStrings(locations []common.ServerID) []string {
 		result[i] = string(loc)
 	}
 	return result
+}
+
+func (ms *MasterServer) Heartbeat(
+	ctx context.Context,
+	req *pb.HeartbeatRequest,
+) (*pb.HeartbeatResponse, error) {
+
+	ms.master.mu.Lock()
+	defer ms.master.mu.Unlock()
+
+	serverID := common.ServerID(req.ServerId)
+
+	ms.master.serverHeartbeats[serverID] = time.Now()
+
+	var handles []common.ChunkHandle
+	for _, ch := range req.Chunks {
+		handles = append(handles, common.ChunkHandle(ch))
+	}
+
+	ms.master.serverChunks[serverID] = handles
+
+	log.Printf("Heartbeat from %s | chunks=%d\n", serverID, len(handles))
+
+	return &pb.HeartbeatResponse{Success: true}, nil
 }

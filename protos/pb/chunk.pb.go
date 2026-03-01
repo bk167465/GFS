@@ -449,6 +449,102 @@ func (x *CommitWriteResponse) GetError() string {
 	return ""
 }
 
+type ReplicateChunkRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Handle        string                 `protobuf:"bytes,1,opt,name=handle,proto3" json:"handle,omitempty"`
+	SourceAddress string                 `protobuf:"bytes,2,opt,name=sourceAddress,proto3" json:"sourceAddress,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReplicateChunkRequest) Reset() {
+	*x = ReplicateChunkRequest{}
+	mi := &file_chunk_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReplicateChunkRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReplicateChunkRequest) ProtoMessage() {}
+
+func (x *ReplicateChunkRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_chunk_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReplicateChunkRequest.ProtoReflect.Descriptor instead.
+func (*ReplicateChunkRequest) Descriptor() ([]byte, []int) {
+	return file_chunk_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ReplicateChunkRequest) GetHandle() string {
+	if x != nil {
+		return x.Handle
+	}
+	return ""
+}
+
+func (x *ReplicateChunkRequest) GetSourceAddress() string {
+	if x != nil {
+		return x.SourceAddress
+	}
+	return ""
+}
+
+type ReplicateChunkResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ReplicateChunkResponse) Reset() {
+	*x = ReplicateChunkResponse{}
+	mi := &file_chunk_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ReplicateChunkResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ReplicateChunkResponse) ProtoMessage() {}
+
+func (x *ReplicateChunkResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_chunk_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ReplicateChunkResponse.ProtoReflect.Descriptor instead.
+func (*ReplicateChunkResponse) Descriptor() ([]byte, []int) {
+	return file_chunk_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *ReplicateChunkResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
 var File_chunk_proto protoreflect.FileDescriptor
 
 const file_chunk_proto_rawDesc = "" +
@@ -478,13 +574,19 @@ const file_chunk_proto_rawDesc = "" +
 	"\vsecondaries\x18\x05 \x03(\tR\vsecondaries\"E\n" +
 	"\x13CommitWriteResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x14\n" +
-	"\x05error\x18\x02 \x01(\tR\x05error2\x84\x02\n" +
+	"\x05error\x18\x02 \x01(\tR\x05error\"U\n" +
+	"\x15ReplicateChunkRequest\x12\x16\n" +
+	"\x06handle\x18\x01 \x01(\tR\x06handle\x12$\n" +
+	"\rsourceAddress\x18\x02 \x01(\tR\rsourceAddress\"2\n" +
+	"\x16ReplicateChunkResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess2\xcf\x02\n" +
 	"\fChunkService\x12:\n" +
 	"\tReadChunk\x12\x15.gfs.ReadChunkRequest\x1a\x16.gfs.ReadChunkResponse\x12=\n" +
 	"\n" +
 	"CheckChunk\x12\x16.gfs.CheckChunkRequest\x1a\x17.gfs.CheckChunkResponse\x127\n" +
 	"\bPushData\x12\x14.gfs.PushDataRequest\x1a\x15.gfs.PushDataResponse\x12@\n" +
-	"\vCommitWrite\x12\x17.gfs.CommitWriteRequest\x1a\x18.gfs.CommitWriteResponseB\x05Z\x03/pbb\x06proto3"
+	"\vCommitWrite\x12\x17.gfs.CommitWriteRequest\x1a\x18.gfs.CommitWriteResponse\x12I\n" +
+	"\x0eReplicateChunk\x12\x1a.gfs.ReplicateChunkRequest\x1a\x1b.gfs.ReplicateChunkResponseB\x05Z\x03/pbb\x06proto3"
 
 var (
 	file_chunk_proto_rawDescOnce sync.Once
@@ -498,28 +600,32 @@ func file_chunk_proto_rawDescGZIP() []byte {
 	return file_chunk_proto_rawDescData
 }
 
-var file_chunk_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_chunk_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_chunk_proto_goTypes = []any{
-	(*ReadChunkRequest)(nil),    // 0: gfs.ReadChunkRequest
-	(*ReadChunkResponse)(nil),   // 1: gfs.ReadChunkResponse
-	(*CheckChunkRequest)(nil),   // 2: gfs.CheckChunkRequest
-	(*CheckChunkResponse)(nil),  // 3: gfs.CheckChunkResponse
-	(*PushDataRequest)(nil),     // 4: gfs.PushDataRequest
-	(*PushDataResponse)(nil),    // 5: gfs.PushDataResponse
-	(*CommitWriteRequest)(nil),  // 6: gfs.CommitWriteRequest
-	(*CommitWriteResponse)(nil), // 7: gfs.CommitWriteResponse
+	(*ReadChunkRequest)(nil),       // 0: gfs.ReadChunkRequest
+	(*ReadChunkResponse)(nil),      // 1: gfs.ReadChunkResponse
+	(*CheckChunkRequest)(nil),      // 2: gfs.CheckChunkRequest
+	(*CheckChunkResponse)(nil),     // 3: gfs.CheckChunkResponse
+	(*PushDataRequest)(nil),        // 4: gfs.PushDataRequest
+	(*PushDataResponse)(nil),       // 5: gfs.PushDataResponse
+	(*CommitWriteRequest)(nil),     // 6: gfs.CommitWriteRequest
+	(*CommitWriteResponse)(nil),    // 7: gfs.CommitWriteResponse
+	(*ReplicateChunkRequest)(nil),  // 8: gfs.ReplicateChunkRequest
+	(*ReplicateChunkResponse)(nil), // 9: gfs.ReplicateChunkResponse
 }
 var file_chunk_proto_depIdxs = []int32{
 	0, // 0: gfs.ChunkService.ReadChunk:input_type -> gfs.ReadChunkRequest
 	2, // 1: gfs.ChunkService.CheckChunk:input_type -> gfs.CheckChunkRequest
 	4, // 2: gfs.ChunkService.PushData:input_type -> gfs.PushDataRequest
 	6, // 3: gfs.ChunkService.CommitWrite:input_type -> gfs.CommitWriteRequest
-	1, // 4: gfs.ChunkService.ReadChunk:output_type -> gfs.ReadChunkResponse
-	3, // 5: gfs.ChunkService.CheckChunk:output_type -> gfs.CheckChunkResponse
-	5, // 6: gfs.ChunkService.PushData:output_type -> gfs.PushDataResponse
-	7, // 7: gfs.ChunkService.CommitWrite:output_type -> gfs.CommitWriteResponse
-	4, // [4:8] is the sub-list for method output_type
-	0, // [0:4] is the sub-list for method input_type
+	8, // 4: gfs.ChunkService.ReplicateChunk:input_type -> gfs.ReplicateChunkRequest
+	1, // 5: gfs.ChunkService.ReadChunk:output_type -> gfs.ReadChunkResponse
+	3, // 6: gfs.ChunkService.CheckChunk:output_type -> gfs.CheckChunkResponse
+	5, // 7: gfs.ChunkService.PushData:output_type -> gfs.PushDataResponse
+	7, // 8: gfs.ChunkService.CommitWrite:output_type -> gfs.CommitWriteResponse
+	9, // 9: gfs.ChunkService.ReplicateChunk:output_type -> gfs.ReplicateChunkResponse
+	5, // [5:10] is the sub-list for method output_type
+	0, // [0:5] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -536,7 +642,7 @@ func file_chunk_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_chunk_proto_rawDesc), len(file_chunk_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

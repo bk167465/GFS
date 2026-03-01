@@ -1,9 +1,17 @@
 package chunkserver
 
 import (
+	"context"
+	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
+
+	pb "github.com/bk167465/GFS/protos/pb"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type ChunkServer struct {
@@ -92,4 +100,55 @@ func (cs *ChunkServer) ApplyWrite(handle string, dataID string, offset int64) er
 	cs.mu.Unlock()
 
 	return nil
+}
+
+func (cs *ChunkServer) startHeartbeatLoop(masterAddr string) {
+	for {
+		time.Sleep(10 * time.Second)
+
+		conn, err := grpc.Dial(masterAddr,
+			grpc.WithTransportCredentials(insecure.NewCredentials()))
+		if err != nil {
+			log.Println("Heartbeat dial error:", err)
+			continue
+		}
+
+		client := pb.NewMasterServiceClient(conn)
+
+		_, err = client.Heartbeat(context.Background(),
+			&pb.HeartbeatRequest{
+				ServerId: cs.ID,
+				Chunks:   cs.getAllChunks(),
+			})
+
+		if err != nil {
+			log.Println("Heartbeat RPC error:", err)
+		} else {
+			log.Println("Heartbeat sent from", cs.ID)
+		}
+
+		conn.Close()
+	}
+}
+
+func (cs *ChunkServer) storeTempData(data []byte) string {
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
+
+	dataID := fmt.Sprintf("replica-%d", time.Now().UnixNano())
+
+	cs.writeBuffer[dataID] = data
+
+	return dataID
+}
+
+func (cs *ChunkServer) getAllChunks() []string {
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
+
+	var handles []string
+	for h := range cs.chunks {
+		handles = append(handles, h)
+	}
+	return handles
 }

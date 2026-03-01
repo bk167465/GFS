@@ -22,6 +22,7 @@ const (
 	MasterService_AllocateChunk_FullMethodName     = "/gfs.MasterService/AllocateChunk"
 	MasterService_GetChunkLocations_FullMethodName = "/gfs.MasterService/GetChunkLocations"
 	MasterService_GetFileMetadata_FullMethodName   = "/gfs.MasterService/GetFileMetadata"
+	MasterService_Heartbeat_FullMethodName         = "/gfs.MasterService/Heartbeat"
 )
 
 // MasterServiceClient is the client API for MasterService service.
@@ -36,6 +37,7 @@ type MasterServiceClient interface {
 	GetChunkLocations(ctx context.Context, in *GetChunkLocationsRequest, opts ...grpc.CallOption) (*ChunkLocationResponse, error)
 	// GetFileMetadata returns all chunks for a file
 	GetFileMetadata(ctx context.Context, in *GetFileMetadataRequest, opts ...grpc.CallOption) (*GetFileMetadataResponse, error)
+	Heartbeat(ctx context.Context, in *HeartbeatRequest, opts ...grpc.CallOption) (*HeartbeatResponse, error)
 }
 
 type masterServiceClient struct {
@@ -76,6 +78,16 @@ func (c *masterServiceClient) GetFileMetadata(ctx context.Context, in *GetFileMe
 	return out, nil
 }
 
+func (c *masterServiceClient) Heartbeat(ctx context.Context, in *HeartbeatRequest, opts ...grpc.CallOption) (*HeartbeatResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(HeartbeatResponse)
+	err := c.cc.Invoke(ctx, MasterService_Heartbeat_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MasterServiceServer is the server API for MasterService service.
 // All implementations must embed UnimplementedMasterServiceServer
 // for forward compatibility.
@@ -88,6 +100,7 @@ type MasterServiceServer interface {
 	GetChunkLocations(context.Context, *GetChunkLocationsRequest) (*ChunkLocationResponse, error)
 	// GetFileMetadata returns all chunks for a file
 	GetFileMetadata(context.Context, *GetFileMetadataRequest) (*GetFileMetadataResponse, error)
+	Heartbeat(context.Context, *HeartbeatRequest) (*HeartbeatResponse, error)
 	mustEmbedUnimplementedMasterServiceServer()
 }
 
@@ -106,6 +119,9 @@ func (UnimplementedMasterServiceServer) GetChunkLocations(context.Context, *GetC
 }
 func (UnimplementedMasterServiceServer) GetFileMetadata(context.Context, *GetFileMetadataRequest) (*GetFileMetadataResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetFileMetadata not implemented")
+}
+func (UnimplementedMasterServiceServer) Heartbeat(context.Context, *HeartbeatRequest) (*HeartbeatResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Heartbeat not implemented")
 }
 func (UnimplementedMasterServiceServer) mustEmbedUnimplementedMasterServiceServer() {}
 func (UnimplementedMasterServiceServer) testEmbeddedByValue()                       {}
@@ -182,6 +198,24 @@ func _MasterService_GetFileMetadata_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MasterService_Heartbeat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HeartbeatRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MasterServiceServer).Heartbeat(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MasterService_Heartbeat_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MasterServiceServer).Heartbeat(ctx, req.(*HeartbeatRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MasterService_ServiceDesc is the grpc.ServiceDesc for MasterService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -200,6 +234,10 @@ var MasterService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetFileMetadata",
 			Handler:    _MasterService_GetFileMetadata_Handler,
+		},
+		{
+			MethodName: "Heartbeat",
+			Handler:    _MasterService_Heartbeat_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

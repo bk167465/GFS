@@ -49,6 +49,15 @@ message CommitWriteResponse {
   string error = 2;
 }
 
+message ReplicateChunkRequest {
+  string handle = 1;
+  string sourceAddress = 2;
+}
+
+message ReplicateChunkResponse {
+  bool success = 1;
+}
+
 // ChunkService handles all chunk server operations
 service ChunkService {
   // ReadChunk retrieves data from a chunk
@@ -62,4 +71,6 @@ service ChunkService {
 
   // Write Phase 2: Client tells primary to commit
   rpc CommitWrite(CommitWriteRequest) returns (CommitWriteResponse);
+
+  rpc ReplicateChunk(ReplicateChunkRequest) returns (ReplicateChunkResponse);
 }

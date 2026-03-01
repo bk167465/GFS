@@ -39,6 +39,15 @@ message GetFileMetadataResponse {
   string error = 2;
 }
 
+message HeartbeatRequest {
+  string serverId = 1;
+  repeated string chunks = 2;
+}
+
+message HeartbeatResponse {
+  bool success = 1;
+}
+
 // MasterService handles all master operations
 service MasterService {
   // AllocateChunk allocates a new chunk for a file
@@ -49,4 +58,6 @@ service MasterService {
   
   // GetFileMetadata returns all chunks for a file
   rpc GetFileMetadata(GetFileMetadataRequest) returns (GetFileMetadataResponse);
+
+  rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
 }

@@ -49,7 +49,8 @@ func (csg *ChunkServerGRPC) CheckChunk(ctx context.Context, req *pb.CheckChunkRe
 }
 
 // StartServer starts the gRPC Chunk server
-func (csg *ChunkServerGRPC) StartServer(serverID string, port string) error {
+func (csg *ChunkServerGRPC) StartServer(serverID string, port string, masterAddr string) error {
+
 	listener, err := net.Listen("tcp", ":"+port)
 	if err != nil {
 		return fmt.Errorf("failed to listen on port %s: %w", port, err)
@@ -60,6 +61,9 @@ func (csg *ChunkServerGRPC) StartServer(serverID string, port string) error {
 
 	log.Printf("ChunkServer %s gRPC server listening on port %s\n", serverID, port)
 
+	go csg.chunkServer.startHeartbeatLoop(masterAddr)
+
+	// Now block
 	if err := grpcServer.Serve(listener); err != nil {
 		return fmt.Errorf("failed to serve: %w", err)
 	}
@@ -136,5 +140,37 @@ func (csg *ChunkServerGRPC) CommitWrite(
 	return &pb.CommitWriteResponse{
 		Success: true,
 		Error:   "",
+	}, nil
+}
+
+func (csg *ChunkServerGRPC) ReplicateChunk(
+	ctx context.Context,
+	req *pb.ReplicateChunkRequest,
+) (*pb.ReplicateChunkResponse, error) {
+
+	conn, err := grpc.Dial(req.SourceAddress,
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+
+	client := pb.NewChunkServiceClient(conn)
+
+	resp, err := client.ReadChunk(ctx,
+		&pb.ReadChunkRequest{Handle: req.Handle})
+	if err != nil {
+		return nil, err
+	}
+
+	dataID := csg.chunkServer.storeTempData(resp.Data)
+
+	err = csg.chunkServer.ApplyWrite(req.Handle, dataID, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.ReplicateChunkResponse{
+		Success: true,
 	}, nil
 }

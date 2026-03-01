@@ -315,6 +315,102 @@ func (x *GetFileMetadataResponse) GetError() string {
 	return ""
 }
 
+type HeartbeatRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ServerId      string                 `protobuf:"bytes,1,opt,name=serverId,proto3" json:"serverId,omitempty"`
+	Chunks        []string               `protobuf:"bytes,2,rep,name=chunks,proto3" json:"chunks,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *HeartbeatRequest) Reset() {
+	*x = HeartbeatRequest{}
+	mi := &file_master_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *HeartbeatRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HeartbeatRequest) ProtoMessage() {}
+
+func (x *HeartbeatRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_master_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HeartbeatRequest.ProtoReflect.Descriptor instead.
+func (*HeartbeatRequest) Descriptor() ([]byte, []int) {
+	return file_master_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *HeartbeatRequest) GetServerId() string {
+	if x != nil {
+		return x.ServerId
+	}
+	return ""
+}
+
+func (x *HeartbeatRequest) GetChunks() []string {
+	if x != nil {
+		return x.Chunks
+	}
+	return nil
+}
+
+type HeartbeatResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *HeartbeatResponse) Reset() {
+	*x = HeartbeatResponse{}
+	mi := &file_master_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *HeartbeatResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HeartbeatResponse) ProtoMessage() {}
+
+func (x *HeartbeatResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_master_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HeartbeatResponse.ProtoReflect.Descriptor instead.
+func (*HeartbeatResponse) Descriptor() ([]byte, []int) {
+	return file_master_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *HeartbeatResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
 var File_master_proto protoreflect.FileDescriptor
 
 const file_master_proto_rawDesc = "" +
@@ -334,11 +430,17 @@ const file_master_proto_rawDesc = "" +
 	"\bfilename\x18\x01 \x01(\tR\bfilename\"^\n" +
 	"\x17GetFileMetadataResponse\x12-\n" +
 	"\bmetadata\x18\x01 \x01(\v2\x11.gfs.FileMetadataR\bmetadata\x12\x14\n" +
-	"\x05error\x18\x02 \x01(\tR\x05error2\xf5\x01\n" +
+	"\x05error\x18\x02 \x01(\tR\x05error\"F\n" +
+	"\x10HeartbeatRequest\x12\x1a\n" +
+	"\bserverId\x18\x01 \x01(\tR\bserverId\x12\x16\n" +
+	"\x06chunks\x18\x02 \x03(\tR\x06chunks\"-\n" +
+	"\x11HeartbeatResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess2\xb1\x02\n" +
 	"\rMasterService\x12F\n" +
 	"\rAllocateChunk\x12\x19.gfs.AllocateChunkRequest\x1a\x1a.gfs.AllocateChunkResponse\x12N\n" +
 	"\x11GetChunkLocations\x12\x1d.gfs.GetChunkLocationsRequest\x1a\x1a.gfs.ChunkLocationResponse\x12L\n" +
-	"\x0fGetFileMetadata\x12\x1b.gfs.GetFileMetadataRequest\x1a\x1c.gfs.GetFileMetadataResponseB\x05Z\x03/pbb\x06proto3"
+	"\x0fGetFileMetadata\x12\x1b.gfs.GetFileMetadataRequest\x1a\x1c.gfs.GetFileMetadataResponse\x12:\n" +
+	"\tHeartbeat\x12\x15.gfs.HeartbeatRequest\x1a\x16.gfs.HeartbeatResponseB\x05Z\x03/pbb\x06proto3"
 
 var (
 	file_master_proto_rawDescOnce sync.Once
@@ -352,7 +454,7 @@ func file_master_proto_rawDescGZIP() []byte {
 	return file_master_proto_rawDescData
 }
 
-var file_master_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_master_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_master_proto_goTypes = []any{
 	(*GetChunkLocationsRequest)(nil), // 0: gfs.GetChunkLocationsRequest
 	(*ChunkLocationResponse)(nil),    // 1: gfs.ChunkLocationResponse
@@ -360,21 +462,25 @@ var file_master_proto_goTypes = []any{
 	(*AllocateChunkResponse)(nil),    // 3: gfs.AllocateChunkResponse
 	(*GetFileMetadataRequest)(nil),   // 4: gfs.GetFileMetadataRequest
 	(*GetFileMetadataResponse)(nil),  // 5: gfs.GetFileMetadataResponse
-	(*ChunkMetadata)(nil),            // 6: gfs.ChunkMetadata
-	(*FileMetadata)(nil),             // 7: gfs.FileMetadata
+	(*HeartbeatRequest)(nil),         // 6: gfs.HeartbeatRequest
+	(*HeartbeatResponse)(nil),        // 7: gfs.HeartbeatResponse
+	(*ChunkMetadata)(nil),            // 8: gfs.ChunkMetadata
+	(*FileMetadata)(nil),             // 9: gfs.FileMetadata
 }
 var file_master_proto_depIdxs = []int32{
-	6, // 0: gfs.ChunkLocationResponse.chunk:type_name -> gfs.ChunkMetadata
-	6, // 1: gfs.AllocateChunkResponse.chunk:type_name -> gfs.ChunkMetadata
-	7, // 2: gfs.GetFileMetadataResponse.metadata:type_name -> gfs.FileMetadata
+	8, // 0: gfs.ChunkLocationResponse.chunk:type_name -> gfs.ChunkMetadata
+	8, // 1: gfs.AllocateChunkResponse.chunk:type_name -> gfs.ChunkMetadata
+	9, // 2: gfs.GetFileMetadataResponse.metadata:type_name -> gfs.FileMetadata
 	2, // 3: gfs.MasterService.AllocateChunk:input_type -> gfs.AllocateChunkRequest
 	0, // 4: gfs.MasterService.GetChunkLocations:input_type -> gfs.GetChunkLocationsRequest
 	4, // 5: gfs.MasterService.GetFileMetadata:input_type -> gfs.GetFileMetadataRequest
-	3, // 6: gfs.MasterService.AllocateChunk:output_type -> gfs.AllocateChunkResponse
-	1, // 7: gfs.MasterService.GetChunkLocations:output_type -> gfs.ChunkLocationResponse
-	5, // 8: gfs.MasterService.GetFileMetadata:output_type -> gfs.GetFileMetadataResponse
-	6, // [6:9] is the sub-list for method output_type
-	3, // [3:6] is the sub-list for method input_type
+	6, // 6: gfs.MasterService.Heartbeat:input_type -> gfs.HeartbeatRequest
+	3, // 7: gfs.MasterService.AllocateChunk:output_type -> gfs.AllocateChunkResponse
+	1, // 8: gfs.MasterService.GetChunkLocations:output_type -> gfs.ChunkLocationResponse
+	5, // 9: gfs.MasterService.GetFileMetadata:output_type -> gfs.GetFileMetadataResponse
+	7, // 10: gfs.MasterService.Heartbeat:output_type -> gfs.HeartbeatResponse
+	7, // [7:11] is the sub-list for method output_type
+	3, // [3:7] is the sub-list for method input_type
 	3, // [3:3] is the sub-list for extension type_name
 	3, // [3:3] is the sub-list for extension extendee
 	0, // [0:3] is the sub-list for field type_name
@@ -392,7 +498,7 @@ func file_master_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_master_proto_rawDesc), len(file_master_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
