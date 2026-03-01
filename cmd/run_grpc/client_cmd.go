@@ -1,0 +1,135 @@
+package run_grpc
+
+import (
+	"context"
+	"flag"
+	"fmt"
+	"log"
+	"os"
+	"strings"
+	"time"
+
+	"github.com/bk167465/GFS/internal/client"
+)
+
+// ClientCommand handles the gRPC client file operations
+func ClientCommand() {
+	clientCmd := flag.NewFlagSet("client", flag.ExitOnError)
+	masterAddr := clientCmd.String("master", "localhost:5000", "Master server address")
+	chunksStr := clientCmd.String("chunks", "cs1=localhost:5001,cs2=localhost:5002,cs3=localhost:5003", "Chunk servers as comma-separated id=address pairs")
+	filename := clientCmd.String("file", "", "File to upload")
+
+	// use os.Args directly: skip program name and subcommand
+	clientCmd.Parse(os.Args[2:])
+
+	// allow positional filename (in case flag parsing removed it)
+	if *filename == "" && clientCmd.NArg() > 0 {
+		*filename = clientCmd.Arg(0)
+	}
+
+	if *filename == "" {
+		log.Fatalf("Please specify a file with -file flag or as positional argument")
+	}
+
+	// if file not found, try adding .txt extension as a convenience
+	if _, err := os.Stat(*filename); os.IsNotExist(err) {
+		try := *filename + ".txt"
+		if _, err2 := os.Stat(try); err2 == nil {
+			*filename = try
+		}
+	}
+
+	// Parse chunk server addresses
+	chunkServerAddrs := make(map[string]string)
+	for _, pair := range strings.Split(*chunksStr, ",") {
+		parts := strings.Split(pair, "=")
+		if len(parts) != 2 {
+			log.Fatalf("Invalid chunk server format: %s", pair)
+		}
+		chunkServerAddrs[parts[0]] = parts[1]
+	}
+
+	// Create gRPC client
+	gClient, err := client.NewGRPCClient(*masterAddr, chunkServerAddrs)
+	if err != nil {
+		log.Fatalf("Failed to create gRPC client: %v", err)
+	}
+	defer gClient.Close()
+
+	// Upload file
+	log.Printf("Uploading file: %s\n", *filename)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	err = uploadViaGRPC(ctx, gClient, *filename)
+	if err != nil {
+		log.Fatalf("Upload failed: %v", err)
+	}
+
+	// Verify file metadata
+	fileMeta, err := gClient.GetFileMetadata(ctx, *filename)
+	if err != nil {
+		log.Fatalf("Failed to get file metadata: %v", err)
+	}
+
+	fmt.Println("\n=== Upload Complete ===")
+	fmt.Printf("File: %s\n", fileMeta.Filename)
+	for i, chunk := range fileMeta.Chunks {
+		fmt.Printf("  Chunk %d: %s\n", i, chunk.Handle)
+		fmt.Printf("    Locations: %v\n", chunk.Locations)
+	}
+}
+
+// uploadViaGRPC uploads a file using gRPC
+func uploadViaGRPC(ctx context.Context, client *client.GRPCClient, filename string) error {
+	file, err := os.Open(filename)
+	if err != nil {
+		return fmt.Errorf("failed to open file: %w", err)
+	}
+	defer file.Close()
+
+	for {
+		// Read a chunk's worth of data
+		const chunkSize = 1024 * 1024 // 1MB
+		buffer := make([]byte, chunkSize)
+		n, err := file.Read(buffer)
+
+		if n == 0 {
+			break
+		}
+
+		// Allocate a new chunk via Master
+		chunkMeta, err := client.AllocateChunk(ctx, filename)
+		if err != nil {
+			return fmt.Errorf("AllocateChunk failed: %w", err)
+		}
+
+		fmt.Printf("Allocated chunk %s at locations: %v\n", chunkMeta.Handle, chunkMeta.Locations)
+
+		// Write to primary
+		primaryID := chunkMeta.Locations[0]
+		err = client.WriteChunkToServer(ctx, primaryID, chunkMeta.Handle, buffer[:n])
+		if err != nil {
+			return fmt.Errorf("write to primary failed: %w", err)
+		}
+
+		// Replicate to secondaries via primary
+		secondaryIDs := chunkMeta.Locations[1:]
+		err = client.ReplicateChunk(ctx, primaryID, secondaryIDs, chunkMeta.Handle, buffer[:n])
+		if err != nil {
+			return fmt.Errorf("replication failed: %w", err)
+		}
+
+		fmt.Printf("Chunk %s written and replicated\n", chunkMeta.Handle)
+
+		if err != nil && err.Error() != "EOF" {
+			return fmt.Errorf("file read error: %w", err)
+		}
+
+		if err != nil { // EOF
+			break
+		}
+	}
+
+	return nil
+}
