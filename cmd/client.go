@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/bk167465/GFS/internal/chunkserver"
 	"github.com/bk167465/GFS/internal/common"
 	"github.com/bk167465/GFS/internal/master"
-	"os"
 )
 
 type Client struct {
@@ -42,17 +43,25 @@ func (c *Client) Upload(filename string) error {
 		// Ask master to allocate a new chunk
 		chunkMeta := c.master.AllocateChunk(filename)
 
-		// Write to ALL replicas
-		for _, serverID := range chunkMeta.Locations {
-			server := c.chunkServers[string(serverID)]
-			if server == nil {
-				return fmt.Errorf("server %s not found", serverID)
-			}
+		primaryID := string(chunkMeta.Locations[0])
+		primary := c.chunkServers[primaryID]
+		if primary == nil {
+			return fmt.Errorf("primary server %s not found", primaryID)
+		}
 
-			writeErr := server.WriteChunk(string(chunkMeta.Handle), buffer[:n])
-			if writeErr != nil {
-				return writeErr
+		// collect secondary pointers
+		var secondaries []*chunkserver.ChunkServer
+		for _, sid := range chunkMeta.Locations[1:] {
+			sec := c.chunkServers[string(sid)]
+			if sec == nil {
+				return fmt.Errorf("secondary server %s not found", sid)
 			}
+			secondaries = append(secondaries, sec)
+		}
+
+		// primary writes and replicates
+		if err := primary.Replicate(string(chunkMeta.Handle), buffer[:n], secondaries); err != nil {
+			return err
 		}
 
 		if err != nil {
