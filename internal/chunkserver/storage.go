@@ -9,8 +9,11 @@ import (
 type ChunkServer struct {
 	ID       string
 	BasePath string
-	mu       sync.Mutex
-	chunks   map[string]bool // local index of stored chunk handles
+
+	mu sync.Mutex
+
+	chunks      map[string]bool
+	writeBuffer map[string][]byte
 }
 
 func NewChunkServer(id string) *ChunkServer {
@@ -18,9 +21,10 @@ func NewChunkServer(id string) *ChunkServer {
 	os.MkdirAll(path, os.ModePerm)
 
 	cs := &ChunkServer{
-		ID:       id,
-		BasePath: path,
-		chunks:   make(map[string]bool),
+		ID:          id,
+		BasePath:    path,
+		chunks:      make(map[string]bool),
+		writeBuffer: make(map[string][]byte),
 	}
 
 	_ = cs.loadExisting()
@@ -42,17 +46,6 @@ func (cs *ChunkServer) loadExisting() error {
 	return nil
 }
 
-func (cs *ChunkServer) WriteChunk(handle string, data []byte) error {
-	filePath := filepath.Join(cs.BasePath, handle)
-	if err := os.WriteFile(filePath, data, 0644); err != nil {
-		return err
-	}
-	cs.mu.Lock()
-	cs.chunks[handle] = true
-	cs.mu.Unlock()
-	return nil
-}
-
 func (cs *ChunkServer) ReadChunk(handle string) ([]byte, error) {
 	filePath := filepath.Join(cs.BasePath, handle)
 	return os.ReadFile(filePath)
@@ -65,14 +58,38 @@ func (cs *ChunkServer) HasChunk(handle string) bool {
 	return ok
 }
 
-func (cs *ChunkServer) Replicate(handle string, data []byte, peers []*ChunkServer) error {
-	if err := cs.WriteChunk(handle, data); err != nil {
+func (cs *ChunkServer) BufferWrite(dataID string, data []byte) {
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
+	cs.writeBuffer[dataID] = data
+}
+
+func (cs *ChunkServer) ApplyWrite(handle string, dataID string, offset int64) error {
+	cs.mu.Lock()
+	data, exists := cs.writeBuffer[dataID]
+	if !exists {
+		cs.mu.Unlock()
+		return os.ErrNotExist
+	}
+	delete(cs.writeBuffer, dataID)
+	cs.mu.Unlock()
+
+	filePath := filepath.Join(cs.BasePath, handle)
+
+	f, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
 		return err
 	}
-	for _, p := range peers {
-		if err := p.WriteChunk(handle, data); err != nil {
-			return err
-		}
+	defer f.Close()
+
+	_, err = f.WriteAt(data, offset)
+	if err != nil {
+		return err
 	}
+
+	cs.mu.Lock()
+	cs.chunks[handle] = true
+	cs.mu.Unlock()
+
 	return nil
 }

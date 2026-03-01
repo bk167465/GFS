@@ -24,32 +24,6 @@ func NewChunkServerGRPC(cs *ChunkServer) *ChunkServerGRPC {
 	}
 }
 
-// WriteChunk writes data to a chunk and optionally replicates to secondaries
-func (csg *ChunkServerGRPC) WriteChunk(ctx context.Context, req *pb.WriteChunkRequest) (*pb.WriteChunkResponse, error) {
-	// Write locally
-	if err := csg.chunkServer.WriteChunk(req.Handle, req.Data); err != nil {
-		return &pb.WriteChunkResponse{
-			Success: false,
-			Error:   fmt.Sprintf("failed to write chunk: %v", err),
-		}, nil
-	}
-
-	// If there are replicas, replicate to them
-	if len(req.Replicas) > 0 {
-		if err := csg.replicateToServers(ctx, req.Handle, req.Data, req.Replicas); err != nil {
-			return &pb.WriteChunkResponse{
-				Success: false,
-				Error:   fmt.Sprintf("failed to replicate: %v", err),
-			}, nil
-		}
-	}
-
-	return &pb.WriteChunkResponse{
-		Success: true,
-		Error:   "",
-	}, nil
-}
-
 // ReadChunk retrieves data from a chunk
 func (csg *ChunkServerGRPC) ReadChunk(ctx context.Context, req *pb.ReadChunkRequest) (*pb.ReadChunkResponse, error) {
 	data, err := csg.chunkServer.ReadChunk(req.Handle)
@@ -93,27 +67,74 @@ func (csg *ChunkServerGRPC) StartServer(serverID string, port string) error {
 	return nil
 }
 
-// replicateToServers replicates data to secondary servers
-func (csg *ChunkServerGRPC) replicateToServers(ctx context.Context, handle string, data []byte, secondaryAddrs []string) error {
-	for _, addr := range secondaryAddrs {
-		// Connect to secondary
-		conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+func (csg *ChunkServerGRPC) PushData(
+	ctx context.Context,
+	req *pb.PushDataRequest,
+) (*pb.PushDataResponse, error) {
+
+	csg.chunkServer.mu.Lock()
+	defer csg.chunkServer.mu.Unlock()
+
+	// Store in temporary buffer (NOT disk yet)
+	csg.chunkServer.writeBuffer[req.DataId] = req.Data
+
+	return &pb.PushDataResponse{
+		Success: true,
+		Error:   "",
+	}, nil
+}
+
+func (csg *ChunkServerGRPC) CommitWrite(
+	ctx context.Context,
+	req *pb.CommitWriteRequest,
+) (*pb.CommitWriteResponse, error) {
+	err := csg.chunkServer.ApplyWrite(req.Handle, req.DataId, req.Offset)
+	if err != nil {
+		return &pb.CommitWriteResponse{
+			Success: false,
+			Error:   err.Error(),
+		}, nil
+	}
+
+	// If already forwarded, stop here
+	if req.FromPrimary {
+		return &pb.CommitWriteResponse{
+			Success: true,
+			Error:   "",
+		}, nil
+	}
+
+	// Forward to secondaries
+	for _, addr := range req.Secondaries {
+		conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
-			return fmt.Errorf("failed to connect to secondary %s: %w", addr, err)
+			return &pb.CommitWriteResponse{
+				Success: false,
+				Error:   fmt.Sprintf("connect secondary %s: %v", addr, err),
+			}, nil
 		}
-		defer conn.Close()
 
 		client := pb.NewChunkServiceClient(conn)
 
-		// Send write request to secondary (no further replication)
-		_, err = client.WriteChunk(ctx, &pb.WriteChunkRequest{
-			Handle:   handle,
-			Data:     data,
-			Replicas: []string{}, // Don't replicate further down the chain
+		_, err = client.CommitWrite(ctx, &pb.CommitWriteRequest{
+			Handle:      req.Handle,
+			DataId:      req.DataId,
+			Offset:      req.Offset,
+			FromPrimary: true,
 		})
+
+		conn.Close()
+
 		if err != nil {
-			return fmt.Errorf("failed to replicate to %s: %w", addr, err)
+			return &pb.CommitWriteResponse{
+				Success: false,
+				Error:   fmt.Sprintf("commit failed on %s: %v", addr, err),
+			}, nil
 		}
 	}
-	return nil
+
+	return &pb.CommitWriteResponse{
+		Success: true,
+		Error:   "",
+	}, nil
 }

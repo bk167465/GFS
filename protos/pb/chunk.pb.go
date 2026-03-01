@@ -21,120 +21,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// WriteChunkRequest sends data to be written to a chunk
-type WriteChunkRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Handle        string                 `protobuf:"bytes,1,opt,name=handle,proto3" json:"handle,omitempty"`
-	Data          []byte                 `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
-	Replicas      []string               `protobuf:"bytes,3,rep,name=replicas,proto3" json:"replicas,omitempty"` // secondaries to replicate to
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *WriteChunkRequest) Reset() {
-	*x = WriteChunkRequest{}
-	mi := &file_chunk_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *WriteChunkRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*WriteChunkRequest) ProtoMessage() {}
-
-func (x *WriteChunkRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_chunk_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use WriteChunkRequest.ProtoReflect.Descriptor instead.
-func (*WriteChunkRequest) Descriptor() ([]byte, []int) {
-	return file_chunk_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *WriteChunkRequest) GetHandle() string {
-	if x != nil {
-		return x.Handle
-	}
-	return ""
-}
-
-func (x *WriteChunkRequest) GetData() []byte {
-	if x != nil {
-		return x.Data
-	}
-	return nil
-}
-
-func (x *WriteChunkRequest) GetReplicas() []string {
-	if x != nil {
-		return x.Replicas
-	}
-	return nil
-}
-
-// WriteChunkResponse confirms the write succeeded
-type WriteChunkResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	Error         string                 `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *WriteChunkResponse) Reset() {
-	*x = WriteChunkResponse{}
-	mi := &file_chunk_proto_msgTypes[1]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *WriteChunkResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*WriteChunkResponse) ProtoMessage() {}
-
-func (x *WriteChunkResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_chunk_proto_msgTypes[1]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use WriteChunkResponse.ProtoReflect.Descriptor instead.
-func (*WriteChunkResponse) Descriptor() ([]byte, []int) {
-	return file_chunk_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *WriteChunkResponse) GetSuccess() bool {
-	if x != nil {
-		return x.Success
-	}
-	return false
-}
-
-func (x *WriteChunkResponse) GetError() string {
-	if x != nil {
-		return x.Error
-	}
-	return ""
-}
-
 // ReadChunkRequest asks server for chunk data
 type ReadChunkRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -145,7 +31,7 @@ type ReadChunkRequest struct {
 
 func (x *ReadChunkRequest) Reset() {
 	*x = ReadChunkRequest{}
-	mi := &file_chunk_proto_msgTypes[2]
+	mi := &file_chunk_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -157,7 +43,7 @@ func (x *ReadChunkRequest) String() string {
 func (*ReadChunkRequest) ProtoMessage() {}
 
 func (x *ReadChunkRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_chunk_proto_msgTypes[2]
+	mi := &file_chunk_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -170,7 +56,7 @@ func (x *ReadChunkRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReadChunkRequest.ProtoReflect.Descriptor instead.
 func (*ReadChunkRequest) Descriptor() ([]byte, []int) {
-	return file_chunk_proto_rawDescGZIP(), []int{2}
+	return file_chunk_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *ReadChunkRequest) GetHandle() string {
@@ -191,7 +77,7 @@ type ReadChunkResponse struct {
 
 func (x *ReadChunkResponse) Reset() {
 	*x = ReadChunkResponse{}
-	mi := &file_chunk_proto_msgTypes[3]
+	mi := &file_chunk_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -203,7 +89,7 @@ func (x *ReadChunkResponse) String() string {
 func (*ReadChunkResponse) ProtoMessage() {}
 
 func (x *ReadChunkResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_chunk_proto_msgTypes[3]
+	mi := &file_chunk_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -216,7 +102,7 @@ func (x *ReadChunkResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReadChunkResponse.ProtoReflect.Descriptor instead.
 func (*ReadChunkResponse) Descriptor() ([]byte, []int) {
-	return file_chunk_proto_rawDescGZIP(), []int{3}
+	return file_chunk_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *ReadChunkResponse) GetData() []byte {
@@ -243,7 +129,7 @@ type CheckChunkRequest struct {
 
 func (x *CheckChunkRequest) Reset() {
 	*x = CheckChunkRequest{}
-	mi := &file_chunk_proto_msgTypes[4]
+	mi := &file_chunk_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -255,7 +141,7 @@ func (x *CheckChunkRequest) String() string {
 func (*CheckChunkRequest) ProtoMessage() {}
 
 func (x *CheckChunkRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_chunk_proto_msgTypes[4]
+	mi := &file_chunk_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -268,7 +154,7 @@ func (x *CheckChunkRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckChunkRequest.ProtoReflect.Descriptor instead.
 func (*CheckChunkRequest) Descriptor() ([]byte, []int) {
-	return file_chunk_proto_rawDescGZIP(), []int{4}
+	return file_chunk_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *CheckChunkRequest) GetHandle() string {
@@ -288,7 +174,7 @@ type CheckChunkResponse struct {
 
 func (x *CheckChunkResponse) Reset() {
 	*x = CheckChunkResponse{}
-	mi := &file_chunk_proto_msgTypes[5]
+	mi := &file_chunk_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -300,7 +186,7 @@ func (x *CheckChunkResponse) String() string {
 func (*CheckChunkResponse) ProtoMessage() {}
 
 func (x *CheckChunkResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_chunk_proto_msgTypes[5]
+	mi := &file_chunk_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -313,7 +199,7 @@ func (x *CheckChunkResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckChunkResponse.ProtoReflect.Descriptor instead.
 func (*CheckChunkResponse) Descriptor() ([]byte, []int) {
-	return file_chunk_proto_rawDescGZIP(), []int{5}
+	return file_chunk_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *CheckChunkResponse) GetExists() bool {
@@ -323,18 +209,251 @@ func (x *CheckChunkResponse) GetExists() bool {
 	return false
 }
 
+type PushDataRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Handle        string                 `protobuf:"bytes,1,opt,name=handle,proto3" json:"handle,omitempty"`
+	Data          []byte                 `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
+	DataId        string                 `protobuf:"bytes,3,opt,name=data_id,json=dataId,proto3" json:"data_id,omitempty"` // unique ID for this write
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PushDataRequest) Reset() {
+	*x = PushDataRequest{}
+	mi := &file_chunk_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PushDataRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PushDataRequest) ProtoMessage() {}
+
+func (x *PushDataRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_chunk_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PushDataRequest.ProtoReflect.Descriptor instead.
+func (*PushDataRequest) Descriptor() ([]byte, []int) {
+	return file_chunk_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *PushDataRequest) GetHandle() string {
+	if x != nil {
+		return x.Handle
+	}
+	return ""
+}
+
+func (x *PushDataRequest) GetData() []byte {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *PushDataRequest) GetDataId() string {
+	if x != nil {
+		return x.DataId
+	}
+	return ""
+}
+
+type PushDataResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Error         string                 `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PushDataResponse) Reset() {
+	*x = PushDataResponse{}
+	mi := &file_chunk_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PushDataResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PushDataResponse) ProtoMessage() {}
+
+func (x *PushDataResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_chunk_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PushDataResponse.ProtoReflect.Descriptor instead.
+func (*PushDataResponse) Descriptor() ([]byte, []int) {
+	return file_chunk_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *PushDataResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *PushDataResponse) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+type CommitWriteRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Handle        string                 `protobuf:"bytes,1,opt,name=handle,proto3" json:"handle,omitempty"`
+	DataId        string                 `protobuf:"bytes,2,opt,name=dataId,proto3" json:"dataId,omitempty"`
+	Offset        int64                  `protobuf:"varint,3,opt,name=offset,proto3" json:"offset,omitempty"`
+	FromPrimary   bool                   `protobuf:"varint,4,opt,name=fromPrimary,proto3" json:"fromPrimary,omitempty"`
+	Secondaries   []string               `protobuf:"bytes,5,rep,name=secondaries,proto3" json:"secondaries,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CommitWriteRequest) Reset() {
+	*x = CommitWriteRequest{}
+	mi := &file_chunk_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CommitWriteRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CommitWriteRequest) ProtoMessage() {}
+
+func (x *CommitWriteRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_chunk_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CommitWriteRequest.ProtoReflect.Descriptor instead.
+func (*CommitWriteRequest) Descriptor() ([]byte, []int) {
+	return file_chunk_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *CommitWriteRequest) GetHandle() string {
+	if x != nil {
+		return x.Handle
+	}
+	return ""
+}
+
+func (x *CommitWriteRequest) GetDataId() string {
+	if x != nil {
+		return x.DataId
+	}
+	return ""
+}
+
+func (x *CommitWriteRequest) GetOffset() int64 {
+	if x != nil {
+		return x.Offset
+	}
+	return 0
+}
+
+func (x *CommitWriteRequest) GetFromPrimary() bool {
+	if x != nil {
+		return x.FromPrimary
+	}
+	return false
+}
+
+func (x *CommitWriteRequest) GetSecondaries() []string {
+	if x != nil {
+		return x.Secondaries
+	}
+	return nil
+}
+
+type CommitWriteResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Error         string                 `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CommitWriteResponse) Reset() {
+	*x = CommitWriteResponse{}
+	mi := &file_chunk_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CommitWriteResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CommitWriteResponse) ProtoMessage() {}
+
+func (x *CommitWriteResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_chunk_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CommitWriteResponse.ProtoReflect.Descriptor instead.
+func (*CommitWriteResponse) Descriptor() ([]byte, []int) {
+	return file_chunk_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *CommitWriteResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *CommitWriteResponse) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
 var File_chunk_proto protoreflect.FileDescriptor
 
 const file_chunk_proto_rawDesc = "" +
 	"\n" +
-	"\vchunk.proto\x12\x03gfs\"[\n" +
-	"\x11WriteChunkRequest\x12\x16\n" +
-	"\x06handle\x18\x01 \x01(\tR\x06handle\x12\x12\n" +
-	"\x04data\x18\x02 \x01(\fR\x04data\x12\x1a\n" +
-	"\breplicas\x18\x03 \x03(\tR\breplicas\"D\n" +
-	"\x12WriteChunkResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x14\n" +
-	"\x05error\x18\x02 \x01(\tR\x05error\"*\n" +
+	"\vchunk.proto\x12\x03gfs\"*\n" +
 	"\x10ReadChunkRequest\x12\x16\n" +
 	"\x06handle\x18\x01 \x01(\tR\x06handle\"=\n" +
 	"\x11ReadChunkResponse\x12\x12\n" +
@@ -343,13 +462,29 @@ const file_chunk_proto_rawDesc = "" +
 	"\x11CheckChunkRequest\x12\x16\n" +
 	"\x06handle\x18\x01 \x01(\tR\x06handle\",\n" +
 	"\x12CheckChunkResponse\x12\x16\n" +
-	"\x06exists\x18\x01 \x01(\bR\x06exists2\xc8\x01\n" +
-	"\fChunkService\x12=\n" +
-	"\n" +
-	"WriteChunk\x12\x16.gfs.WriteChunkRequest\x1a\x17.gfs.WriteChunkResponse\x12:\n" +
+	"\x06exists\x18\x01 \x01(\bR\x06exists\"V\n" +
+	"\x0fPushDataRequest\x12\x16\n" +
+	"\x06handle\x18\x01 \x01(\tR\x06handle\x12\x12\n" +
+	"\x04data\x18\x02 \x01(\fR\x04data\x12\x17\n" +
+	"\adata_id\x18\x03 \x01(\tR\x06dataId\"B\n" +
+	"\x10PushDataResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x14\n" +
+	"\x05error\x18\x02 \x01(\tR\x05error\"\xa0\x01\n" +
+	"\x12CommitWriteRequest\x12\x16\n" +
+	"\x06handle\x18\x01 \x01(\tR\x06handle\x12\x16\n" +
+	"\x06dataId\x18\x02 \x01(\tR\x06dataId\x12\x16\n" +
+	"\x06offset\x18\x03 \x01(\x03R\x06offset\x12 \n" +
+	"\vfromPrimary\x18\x04 \x01(\bR\vfromPrimary\x12 \n" +
+	"\vsecondaries\x18\x05 \x03(\tR\vsecondaries\"E\n" +
+	"\x13CommitWriteResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x14\n" +
+	"\x05error\x18\x02 \x01(\tR\x05error2\x84\x02\n" +
+	"\fChunkService\x12:\n" +
 	"\tReadChunk\x12\x15.gfs.ReadChunkRequest\x1a\x16.gfs.ReadChunkResponse\x12=\n" +
 	"\n" +
-	"CheckChunk\x12\x16.gfs.CheckChunkRequest\x1a\x17.gfs.CheckChunkResponseB\x05Z\x03/pbb\x06proto3"
+	"CheckChunk\x12\x16.gfs.CheckChunkRequest\x1a\x17.gfs.CheckChunkResponse\x127\n" +
+	"\bPushData\x12\x14.gfs.PushDataRequest\x1a\x15.gfs.PushDataResponse\x12@\n" +
+	"\vCommitWrite\x12\x17.gfs.CommitWriteRequest\x1a\x18.gfs.CommitWriteResponseB\x05Z\x03/pbb\x06proto3"
 
 var (
 	file_chunk_proto_rawDescOnce sync.Once
@@ -363,24 +498,28 @@ func file_chunk_proto_rawDescGZIP() []byte {
 	return file_chunk_proto_rawDescData
 }
 
-var file_chunk_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_chunk_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_chunk_proto_goTypes = []any{
-	(*WriteChunkRequest)(nil),  // 0: gfs.WriteChunkRequest
-	(*WriteChunkResponse)(nil), // 1: gfs.WriteChunkResponse
-	(*ReadChunkRequest)(nil),   // 2: gfs.ReadChunkRequest
-	(*ReadChunkResponse)(nil),  // 3: gfs.ReadChunkResponse
-	(*CheckChunkRequest)(nil),  // 4: gfs.CheckChunkRequest
-	(*CheckChunkResponse)(nil), // 5: gfs.CheckChunkResponse
+	(*ReadChunkRequest)(nil),    // 0: gfs.ReadChunkRequest
+	(*ReadChunkResponse)(nil),   // 1: gfs.ReadChunkResponse
+	(*CheckChunkRequest)(nil),   // 2: gfs.CheckChunkRequest
+	(*CheckChunkResponse)(nil),  // 3: gfs.CheckChunkResponse
+	(*PushDataRequest)(nil),     // 4: gfs.PushDataRequest
+	(*PushDataResponse)(nil),    // 5: gfs.PushDataResponse
+	(*CommitWriteRequest)(nil),  // 6: gfs.CommitWriteRequest
+	(*CommitWriteResponse)(nil), // 7: gfs.CommitWriteResponse
 }
 var file_chunk_proto_depIdxs = []int32{
-	0, // 0: gfs.ChunkService.WriteChunk:input_type -> gfs.WriteChunkRequest
-	2, // 1: gfs.ChunkService.ReadChunk:input_type -> gfs.ReadChunkRequest
-	4, // 2: gfs.ChunkService.CheckChunk:input_type -> gfs.CheckChunkRequest
-	1, // 3: gfs.ChunkService.WriteChunk:output_type -> gfs.WriteChunkResponse
-	3, // 4: gfs.ChunkService.ReadChunk:output_type -> gfs.ReadChunkResponse
-	5, // 5: gfs.ChunkService.CheckChunk:output_type -> gfs.CheckChunkResponse
-	3, // [3:6] is the sub-list for method output_type
-	0, // [0:3] is the sub-list for method input_type
+	0, // 0: gfs.ChunkService.ReadChunk:input_type -> gfs.ReadChunkRequest
+	2, // 1: gfs.ChunkService.CheckChunk:input_type -> gfs.CheckChunkRequest
+	4, // 2: gfs.ChunkService.PushData:input_type -> gfs.PushDataRequest
+	6, // 3: gfs.ChunkService.CommitWrite:input_type -> gfs.CommitWriteRequest
+	1, // 4: gfs.ChunkService.ReadChunk:output_type -> gfs.ReadChunkResponse
+	3, // 5: gfs.ChunkService.CheckChunk:output_type -> gfs.CheckChunkResponse
+	5, // 6: gfs.ChunkService.PushData:output_type -> gfs.PushDataResponse
+	7, // 7: gfs.ChunkService.CommitWrite:output_type -> gfs.CommitWriteResponse
+	4, // [4:8] is the sub-list for method output_type
+	0, // [0:4] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -397,7 +536,7 @@ func file_chunk_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_chunk_proto_rawDesc), len(file_chunk_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

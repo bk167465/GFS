@@ -4,19 +4,6 @@ package gfs;
 
 option go_package = "/pb";
 
-// WriteChunkRequest sends data to be written to a chunk
-message WriteChunkRequest {
-  string handle = 1;
-  bytes data = 2;
-  repeated string replicas = 3; // secondaries to replicate to
-}
-
-// WriteChunkResponse confirms the write succeeded
-message WriteChunkResponse {
-  bool success = 1;
-  string error = 2;
-}
-
 // ReadChunkRequest asks server for chunk data
 message ReadChunkRequest {
   string handle = 1;
@@ -38,14 +25,41 @@ message CheckChunkResponse {
   bool exists = 1;
 }
 
+message PushDataRequest {
+  string handle = 1;
+  bytes data = 2;
+  string data_id = 3; // unique ID for this write
+}
+
+message PushDataResponse {
+  bool success = 1;
+  string error = 2;
+}
+
+message CommitWriteRequest {
+  string handle = 1;
+  string dataId = 2;
+  int64 offset = 3;
+  bool fromPrimary = 4;
+  repeated string secondaries = 5;
+}
+
+message CommitWriteResponse {
+  bool success = 1;
+  string error = 2;
+}
+
 // ChunkService handles all chunk server operations
 service ChunkService {
-  // WriteChunk writes data to a chunk and optionally replicates to secondaries
-  rpc WriteChunk(WriteChunkRequest) returns (WriteChunkResponse);
-  
   // ReadChunk retrieves data from a chunk
   rpc ReadChunk(ReadChunkRequest) returns (ReadChunkResponse);
   
   // CheckChunk verifies if server has a chunk
   rpc CheckChunk(CheckChunkRequest) returns (CheckChunkResponse);
+
+  // Write Phase 1: Client pushes data to all replicas
+  rpc PushData(PushDataRequest) returns (PushDataResponse);
+
+  // Write Phase 2: Client tells primary to commit
+  rpc CommitWrite(CommitWriteRequest) returns (CommitWriteResponse);
 }

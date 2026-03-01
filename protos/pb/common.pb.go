@@ -113,12 +113,14 @@ func (x *ServerID) GetId() string {
 
 // ChunkMetadata describes a chunk and its replica locations
 type ChunkMetadata struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Handle        string                 `protobuf:"bytes,1,opt,name=handle,proto3" json:"handle,omitempty"`
-	Locations     []string               `protobuf:"bytes,2,rep,name=locations,proto3" json:"locations,omitempty"`
-	Version       int32                  `protobuf:"varint,3,opt,name=version,proto3" json:"version,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Handle          string                 `protobuf:"bytes,1,opt,name=handle,proto3" json:"handle,omitempty"`
+	Locations       []string               `protobuf:"bytes,2,rep,name=locations,proto3" json:"locations,omitempty"`
+	Version         int32                  `protobuf:"varint,3,opt,name=version,proto3" json:"version,omitempty"`
+	Primary         string                 `protobuf:"bytes,4,opt,name=primary,proto3" json:"primary,omitempty"`
+	LeaseExpiration int64                  `protobuf:"varint,5,opt,name=lease_expiration,json=leaseExpiration,proto3" json:"lease_expiration,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *ChunkMetadata) Reset() {
@@ -168,6 +170,20 @@ func (x *ChunkMetadata) GetLocations() []string {
 func (x *ChunkMetadata) GetVersion() int32 {
 	if x != nil {
 		return x.Version
+	}
+	return 0
+}
+
+func (x *ChunkMetadata) GetPrimary() string {
+	if x != nil {
+		return x.Primary
+	}
+	return ""
+}
+
+func (x *ChunkMetadata) GetLeaseExpiration() int64 {
+	if x != nil {
+		return x.LeaseExpiration
 	}
 	return 0
 }
@@ -233,11 +249,13 @@ const file_common_proto_rawDesc = "" +
 	"\vChunkHandle\x12\x16\n" +
 	"\x06handle\x18\x01 \x01(\tR\x06handle\"\x1a\n" +
 	"\bServerID\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"_\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"\xa4\x01\n" +
 	"\rChunkMetadata\x12\x16\n" +
 	"\x06handle\x18\x01 \x01(\tR\x06handle\x12\x1c\n" +
 	"\tlocations\x18\x02 \x03(\tR\tlocations\x12\x18\n" +
-	"\aversion\x18\x03 \x01(\x05R\aversion\"V\n" +
+	"\aversion\x18\x03 \x01(\x05R\aversion\x12\x18\n" +
+	"\aprimary\x18\x04 \x01(\tR\aprimary\x12)\n" +
+	"\x10lease_expiration\x18\x05 \x01(\x03R\x0fleaseExpiration\"V\n" +
 	"\fFileMetadata\x12\x1a\n" +
 	"\bfilename\x18\x01 \x01(\tR\bfilename\x12*\n" +
 	"\x06chunks\x18\x02 \x03(\v2\x12.gfs.ChunkMetadataR\x06chunksB\x05Z\x03/pbb\x06proto3"
