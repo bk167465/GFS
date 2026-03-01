@@ -26,7 +26,6 @@ func (m *Master) AllocateChunk(filename string) common.ChunkMetadata {
 	defer m.mu.Unlock()
 
 	handle := common.ChunkHandle(fmt.Sprintf("chunk-%d", m.chunkCount))
-	m.chunkCount++
 
 	var locations []common.ServerID
 
@@ -36,9 +35,13 @@ func (m *Master) AllocateChunk(filename string) common.ChunkMetadata {
 		locations = append(locations, server)
 	}
 
+	m.chunkCount++
+	primary := locations[0]
+
 	chunk := common.ChunkMetadata{
 		Handle:    handle,
 		Locations: locations,
+		Primary:   primary,
 		Version:   1,
 	}
 

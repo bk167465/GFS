@@ -14,5 +14,6 @@ type FileMetadata struct {
 type ChunkMetadata struct {
 	Handle    ChunkHandle
 	Locations []ServerID
+	Primary   ServerID
 	Version   int
 }

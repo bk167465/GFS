@@ -19,9 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ChunkService_WriteChunk_FullMethodName = "/gfs.ChunkService/WriteChunk"
-	ChunkService_ReadChunk_FullMethodName  = "/gfs.ChunkService/ReadChunk"
-	ChunkService_CheckChunk_FullMethodName = "/gfs.ChunkService/CheckChunk"
+	ChunkService_ReadChunk_FullMethodName   = "/gfs.ChunkService/ReadChunk"
+	ChunkService_CheckChunk_FullMethodName  = "/gfs.ChunkService/CheckChunk"
+	ChunkService_PushData_FullMethodName    = "/gfs.ChunkService/PushData"
+	ChunkService_CommitWrite_FullMethodName = "/gfs.ChunkService/CommitWrite"
 )
 
 // ChunkServiceClient is the client API for ChunkService service.
@@ -30,12 +31,14 @@ const (
 //
 // ChunkService handles all chunk server operations
 type ChunkServiceClient interface {
-	// WriteChunk writes data to a chunk and optionally replicates to secondaries
-	WriteChunk(ctx context.Context, in *WriteChunkRequest, opts ...grpc.CallOption) (*WriteChunkResponse, error)
 	// ReadChunk retrieves data from a chunk
 	ReadChunk(ctx context.Context, in *ReadChunkRequest, opts ...grpc.CallOption) (*ReadChunkResponse, error)
 	// CheckChunk verifies if server has a chunk
 	CheckChunk(ctx context.Context, in *CheckChunkRequest, opts ...grpc.CallOption) (*CheckChunkResponse, error)
+	// Write Phase 1: Client pushes data to all replicas
+	PushData(ctx context.Context, in *PushDataRequest, opts ...grpc.CallOption) (*PushDataResponse, error)
+	// Write Phase 2: Client tells primary to commit
+	CommitWrite(ctx context.Context, in *CommitWriteRequest, opts ...grpc.CallOption) (*CommitWriteResponse, error)
 }
 
 type chunkServiceClient struct {
@@ -44,16 +47,6 @@ type chunkServiceClient struct {
 
 func NewChunkServiceClient(cc grpc.ClientConnInterface) ChunkServiceClient {
 	return &chunkServiceClient{cc}
-}
-
-func (c *chunkServiceClient) WriteChunk(ctx context.Context, in *WriteChunkRequest, opts ...grpc.CallOption) (*WriteChunkResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(WriteChunkResponse)
-	err := c.cc.Invoke(ctx, ChunkService_WriteChunk_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *chunkServiceClient) ReadChunk(ctx context.Context, in *ReadChunkRequest, opts ...grpc.CallOption) (*ReadChunkResponse, error) {
@@ -76,18 +69,40 @@ func (c *chunkServiceClient) CheckChunk(ctx context.Context, in *CheckChunkReque
 	return out, nil
 }
 
+func (c *chunkServiceClient) PushData(ctx context.Context, in *PushDataRequest, opts ...grpc.CallOption) (*PushDataResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PushDataResponse)
+	err := c.cc.Invoke(ctx, ChunkService_PushData_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chunkServiceClient) CommitWrite(ctx context.Context, in *CommitWriteRequest, opts ...grpc.CallOption) (*CommitWriteResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CommitWriteResponse)
+	err := c.cc.Invoke(ctx, ChunkService_CommitWrite_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ChunkServiceServer is the server API for ChunkService service.
 // All implementations must embed UnimplementedChunkServiceServer
 // for forward compatibility.
 //
 // ChunkService handles all chunk server operations
 type ChunkServiceServer interface {
-	// WriteChunk writes data to a chunk and optionally replicates to secondaries
-	WriteChunk(context.Context, *WriteChunkRequest) (*WriteChunkResponse, error)
 	// ReadChunk retrieves data from a chunk
 	ReadChunk(context.Context, *ReadChunkRequest) (*ReadChunkResponse, error)
 	// CheckChunk verifies if server has a chunk
 	CheckChunk(context.Context, *CheckChunkRequest) (*CheckChunkResponse, error)
+	// Write Phase 1: Client pushes data to all replicas
+	PushData(context.Context, *PushDataRequest) (*PushDataResponse, error)
+	// Write Phase 2: Client tells primary to commit
+	CommitWrite(context.Context, *CommitWriteRequest) (*CommitWriteResponse, error)
 	mustEmbedUnimplementedChunkServiceServer()
 }
 
@@ -98,14 +113,17 @@ type ChunkServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedChunkServiceServer struct{}
 
-func (UnimplementedChunkServiceServer) WriteChunk(context.Context, *WriteChunkRequest) (*WriteChunkResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method WriteChunk not implemented")
-}
 func (UnimplementedChunkServiceServer) ReadChunk(context.Context, *ReadChunkRequest) (*ReadChunkResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ReadChunk not implemented")
 }
 func (UnimplementedChunkServiceServer) CheckChunk(context.Context, *CheckChunkRequest) (*CheckChunkResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CheckChunk not implemented")
+}
+func (UnimplementedChunkServiceServer) PushData(context.Context, *PushDataRequest) (*PushDataResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PushData not implemented")
+}
+func (UnimplementedChunkServiceServer) CommitWrite(context.Context, *CommitWriteRequest) (*CommitWriteResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CommitWrite not implemented")
 }
 func (UnimplementedChunkServiceServer) mustEmbedUnimplementedChunkServiceServer() {}
 func (UnimplementedChunkServiceServer) testEmbeddedByValue()                      {}
@@ -126,24 +144,6 @@ func RegisterChunkServiceServer(s grpc.ServiceRegistrar, srv ChunkServiceServer)
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&ChunkService_ServiceDesc, srv)
-}
-
-func _ChunkService_WriteChunk_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(WriteChunkRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ChunkServiceServer).WriteChunk(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: ChunkService_WriteChunk_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ChunkServiceServer).WriteChunk(ctx, req.(*WriteChunkRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _ChunkService_ReadChunk_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -182,6 +182,42 @@ func _ChunkService_CheckChunk_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ChunkService_PushData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PushDataRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChunkServiceServer).PushData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ChunkService_PushData_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChunkServiceServer).PushData(ctx, req.(*PushDataRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ChunkService_CommitWrite_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CommitWriteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChunkServiceServer).CommitWrite(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ChunkService_CommitWrite_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChunkServiceServer).CommitWrite(ctx, req.(*CommitWriteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ChunkService_ServiceDesc is the grpc.ServiceDesc for ChunkService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -190,16 +226,20 @@ var ChunkService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*ChunkServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "WriteChunk",
-			Handler:    _ChunkService_WriteChunk_Handler,
-		},
-		{
 			MethodName: "ReadChunk",
 			Handler:    _ChunkService_ReadChunk_Handler,
 		},
 		{
 			MethodName: "CheckChunk",
 			Handler:    _ChunkService_CheckChunk_Handler,
+		},
+		{
+			MethodName: "PushData",
+			Handler:    _ChunkService_PushData_Handler,
+		},
+		{
+			MethodName: "CommitWrite",
+			Handler:    _ChunkService_CommitWrite_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -3,7 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
-	"strconv"
+	"time"
 
 	pb "github.com/bk167465/GFS/protos/pb"
 	"google.golang.org/grpc"
@@ -109,24 +109,51 @@ func (gc *GRPCClient) GetFileMetadata(ctx context.Context, filename string) (*pb
 	return resp.Metadata, nil
 }
 
-// WriteChunkToServer writes data to a specific chunkserver via gRPC
-func (gc *GRPCClient) WriteChunkToServer(ctx context.Context, serverID string, handle string, data []byte) error {
-	client, ok := gc.chunkClients[serverID]
-	if !ok {
-		return fmt.Errorf("chunkserver %s not connected", serverID)
+func (gc *GRPCClient) WriteChunk(ctx context.Context, filename string, data []byte, offset int64) error {
+	chunkMeta, err := gc.GetChunkLocations(ctx, filename)
+	if err != nil {
+		return fmt.Errorf("failed to get chunk locations: %w", err)
 	}
 
-	resp, err := client.WriteChunk(ctx, &pb.WriteChunkRequest{
-		Handle:   handle,
-		Data:     data,
-		Replicas: []string{},
+	handle := chunkMeta.Handle
+	primaryID := chunkMeta.Primary
+	replicas := chunkMeta.Locations
+	dataID := fmt.Sprintf("%s-%d", handle, time.Now().UnixNano())
+
+	for _, serverID := range replicas {
+		client := gc.chunkClients[serverID]
+
+		_, err := client.PushData(ctx, &pb.PushDataRequest{
+			Handle: handle,
+			Data:   data,
+			DataId: dataID,
+		})
+		if err != nil {
+			return fmt.Errorf("push to %s failed: %w", serverID, err)
+		}
+	}
+
+	var secondaryAddrs []string
+	for _, serverID := range replicas {
+		if serverID != primaryID {
+			secondaryAddrs = append(secondaryAddrs,
+				gc.chunkConnections[serverID].Target())
+		}
+	}
+
+	resp, err := gc.chunkClients[primaryID].CommitWrite(ctx, &pb.CommitWriteRequest{
+		Handle:      handle,
+		DataId:      dataID,
+		Offset:      offset,
+		FromPrimary: false,
+		Secondaries: secondaryAddrs,
 	})
 	if err != nil {
-		return fmt.Errorf("WriteChunk RPC failed: %w", err)
+		return fmt.Errorf("commit RPC failed: %w", err)
 	}
 
 	if !resp.Success {
-		return fmt.Errorf("write failed: %s", resp.Error)
+		return fmt.Errorf("commit failed: %s", resp.Error)
 	}
 
 	return nil
@@ -151,37 +178,6 @@ func (gc *GRPCClient) ReadChunkFromServer(ctx context.Context, serverID string, 
 	}
 
 	return resp.Data, nil
-}
-
-// ReplicateChunk replicates data to secondary servers via the primary
-func (gc *GRPCClient) ReplicateChunk(ctx context.Context, primaryID string, secondaryIDs []string, handle string, data []byte) error {
-	client, ok := gc.chunkClients[primaryID]
-	if !ok {
-		return fmt.Errorf("primary server %s not connected", primaryID)
-	}
-
-	// Build list of secondary server addresses
-	secondaryAddrs := make([]string, len(secondaryIDs))
-	for i := range secondaryIDs {
-		// Map server ID to address - this should match your chunk server setup
-		// In a real system, you'd look this up from the master
-		secondaryAddrs[i] = "localhost:" + strconv.Itoa(5001+i)
-	}
-
-	resp, err := client.WriteChunk(ctx, &pb.WriteChunkRequest{
-		Handle:   handle,
-		Data:     data,
-		Replicas: secondaryAddrs,
-	})
-	if err != nil {
-		return fmt.Errorf("replication RPC failed: %w", err)
-	}
-
-	if !resp.Success {
-		return fmt.Errorf("replication failed: %s", resp.Error)
-	}
-
-	return nil
 }
 
 // Close closes all gRPC connections

@@ -81,16 +81,17 @@ func ClientCommand() {
 }
 
 // uploadViaGRPC uploads a file using gRPC
-func uploadViaGRPC(ctx context.Context, client *client.GRPCClient, filename string) error {
+func uploadViaGRPC(ctx context.Context, gClient *client.GRPCClient, filename string) error {
 	file, err := os.Open(filename)
 	if err != nil {
 		return fmt.Errorf("failed to open file: %w", err)
 	}
 	defer file.Close()
 
+	const chunkSize = 1024 * 1024 // 1MB
+	var offset int64 = 0
+
 	for {
-		// Read a chunk's worth of data
-		const chunkSize = 1024 * 1024 // 1MB
 		buffer := make([]byte, chunkSize)
 		n, err := file.Read(buffer)
 
@@ -98,29 +99,25 @@ func uploadViaGRPC(ctx context.Context, client *client.GRPCClient, filename stri
 			break
 		}
 
-		// Allocate a new chunk via Master
-		chunkMeta, err := client.AllocateChunk(ctx, filename)
+		// Allocate chunk via Master
+		chunkMeta, err := gClient.AllocateChunk(ctx, filename)
 		if err != nil {
 			return fmt.Errorf("AllocateChunk failed: %w", err)
 		}
 
-		fmt.Printf("Allocated chunk %s at locations: %v\n", chunkMeta.Handle, chunkMeta.Locations)
+		fmt.Printf("Allocated chunk %s\n", chunkMeta.Handle)
+		fmt.Printf("  Primary: %s\n", chunkMeta.Primary)
+		fmt.Printf("  Replicas: %v\n", chunkMeta.Locations)
 
-		// Write to primary
-		primaryID := chunkMeta.Locations[0]
-		err = client.WriteChunkToServer(ctx, primaryID, chunkMeta.Handle, buffer[:n])
+		// Write chunk using new Push + Commit flow
+		err = gClient.WriteChunk(ctx, filename, buffer[:n], offset)
 		if err != nil {
-			return fmt.Errorf("write to primary failed: %w", err)
+			return fmt.Errorf("WriteChunk failed: %w", err)
 		}
 
-		// Replicate to secondaries via primary
-		secondaryIDs := chunkMeta.Locations[1:]
-		err = client.ReplicateChunk(ctx, primaryID, secondaryIDs, chunkMeta.Handle, buffer[:n])
-		if err != nil {
-			return fmt.Errorf("replication failed: %w", err)
-		}
+		fmt.Printf("Chunk %s written successfully\n", chunkMeta.Handle)
 
-		fmt.Printf("Chunk %s written and replicated\n", chunkMeta.Handle)
+		offset += int64(n)
 
 		if err != nil && err.Error() != "EOF" {
 			return fmt.Errorf("file read error: %w", err)

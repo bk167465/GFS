@@ -19,6 +19,8 @@ message ChunkMetadata {
   string handle = 1;
   repeated string locations = 2;
   int32 version = 3;
+  string primary = 4;
+  int64 lease_expiration = 5;
 }
 
 // FileMetadata describes a file and its chunks

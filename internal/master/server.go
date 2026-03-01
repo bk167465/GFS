@@ -31,6 +31,7 @@ func (ms *MasterServer) AllocateChunk(ctx context.Context, req *pb.AllocateChunk
 	pbChunk := &pb.ChunkMetadata{
 		Handle:    string(chunk.Handle),
 		Locations: locationsToStrings(chunk.Locations),
+		Primary:   string(chunk.Primary),
 		Version:   int32(chunk.Version),
 	}
 
@@ -61,6 +62,7 @@ func (ms *MasterServer) GetChunkLocations(ctx context.Context, req *pb.GetChunkL
 	pbChunk := &pb.ChunkMetadata{
 		Handle:    string(firstChunk.Handle),
 		Locations: locationsToStrings(firstChunk.Locations),
+		Primary:   string(firstChunk.Primary),
 		Version:   int32(firstChunk.Version),
 	}
 
@@ -85,6 +87,7 @@ func (ms *MasterServer) GetFileMetadata(ctx context.Context, req *pb.GetFileMeta
 		pbChunks[i] = &pb.ChunkMetadata{
 			Handle:    string(chunk.Handle),
 			Locations: locationsToStrings(chunk.Locations),
+			Primary:   string(chunk.Primary),
 			Version:   int32(chunk.Version),
 		}
 	}
