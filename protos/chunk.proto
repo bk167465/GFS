@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package gfs;
+
+option go_package = "/pb";
+
+// WriteChunkRequest sends data to be written to a chunk
+message WriteChunkRequest {
+  string handle = 1;
+  bytes data = 2;
+  repeated string replicas = 3; // secondaries to replicate to
+}
+
+// WriteChunkResponse confirms the write succeeded
+message WriteChunkResponse {
+  bool success = 1;
+  string error = 2;
+}
+
+// ReadChunkRequest asks server for chunk data
+message ReadChunkRequest {
+  string handle = 1;
+}
+
+// ReadChunkResponse returns the chunk data
+message ReadChunkResponse {
+  bytes data = 1;
+  string error = 2;
+}
+
+// CheckChunkRequest checks if server has a chunk
+message CheckChunkRequest {
+  string handle = 1;
+}
+
+// CheckChunkResponse indicates if chunk exists
+message CheckChunkResponse {
+  bool exists = 1;
+}
+
+// ChunkService handles all chunk server operations
+service ChunkService {
+  // WriteChunk writes data to a chunk and optionally replicates to secondaries
+  rpc WriteChunk(WriteChunkRequest) returns (WriteChunkResponse);
+  
+  // ReadChunk retrieves data from a chunk
+  rpc ReadChunk(ReadChunkRequest) returns (ReadChunkResponse);
+  
+  // CheckChunk verifies if server has a chunk
+  rpc CheckChunk(CheckChunkRequest) returns (CheckChunkResponse);
+}

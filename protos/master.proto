@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package gfs;
+
+option go_package = "/pb";
+
+import "common.proto";
+
+// GetChunkLocationsRequest asks master where a chunk is stored
+message GetChunkLocationsRequest {
+  string filename = 1;
+}
+
+// ChunkLocationResponse tells client which servers hold the chunk
+message ChunkLocationResponse {
+  ChunkMetadata chunk = 1;
+  string error = 2;
+}
+
+// AllocateChunkRequest asks master to create a new chunk for a file
+message AllocateChunkRequest {
+  string filename = 1;
+}
+
+// AllocateChunkResponse returns the newly allocated chunk metadata
+message AllocateChunkResponse {
+  ChunkMetadata chunk = 1;
+  string error = 2;
+}
+
+// GetFileMetadataRequest asks master for all chunks in a file
+message GetFileMetadataRequest {
+  string filename = 1;
+}
+
+// GetFileMetadataResponse returns the file's metadata
+message GetFileMetadataResponse {
+  FileMetadata metadata = 1;
+  string error = 2;
+}
+
+// MasterService handles all master operations
+service MasterService {
+  // AllocateChunk allocates a new chunk for a file
+  rpc AllocateChunk(AllocateChunkRequest) returns (AllocateChunkResponse);
+  
+  // GetChunkLocations returns the servers storing a chunk
+  rpc GetChunkLocations(GetChunkLocationsRequest) returns (ChunkLocationResponse);
+  
+  // GetFileMetadata returns all chunks for a file
+  rpc GetFileMetadata(GetFileMetadataRequest) returns (GetFileMetadataResponse);
+}
